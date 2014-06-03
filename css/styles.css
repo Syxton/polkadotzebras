@@ -1,0 +1,325 @@
+body {
+    background: url('../images/background.jpg');
+    background-size: 5%;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+strong {
+    vertical-align: top;
+}
+
+.inputlabel {
+    font-weight: bold;
+    vertical-align: top;
+    display: inline-block;
+    width: 120px;
+}
+
+input { 
+    width: 180px;
+}
+
+.main {
+    background: white;
+    width: 80%;
+    min-width: 500px;
+    margin-right: auto;
+    margin-left: auto;
+    margin-top: 40px;
+    text-align: center;
+    padding-bottom: 80px;
+}
+
+#menu_buttons {
+    position: relative;
+    top: -20px;
+}
+
+#logo {
+    float: left;
+}
+
+#logo img{
+    padding: 15px;
+}
+
+#admin_link {
+    position: relative;
+    float: right;
+    padding: 10px;
+    z-index: 100;
+}
+
+#admin_display {
+    position: relative;
+    min-height: 200px;
+    padding: 5px 5px 50px 5px;
+    border: 1px solid gainsboro;
+    display: inline-block;
+    width: 80%;
+    vertical-align: top;
+}
+
+#admin_menu {
+    min-height: 200px;
+    text-align:left;
+    display:inline-block;
+    width:15%;
+    vertical-align:top;
+}
+
+#page {
+    position: relative;
+    clear: both;
+}
+
+.page_styles {
+    text-align: left;
+    font-size: 14px;
+    padding: 15px 35px;
+}
+
+#builder {
+    padding-bottom: 35px;
+    border-top: 1px solid black;
+}
+
+.builder_steps_container {
+    display: inline-block;
+    width: 99%;  
+}
+
+.builder_steps {
+    width: 100%; 
+}
+
+.builder_page {
+    text-align: left;
+    font-size: 14px;
+    padding: 25px 0px 0px 0px;
+}
+
+#popular {
+    
+}
+
+#ui-carousel-next, #ui-carousel-prev {
+    width: 60px;
+    height: 175px;
+    background: url(../images/arrow-left.png)  rgba(255, 255, 255, 0) center center no-repeat;
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    z-index: 2;
+}
+
+#ui-carousel-next {
+    right: 0;
+    background-image: url(../images/arrow-right.png);
+}
+
+.popular {
+    border: 1px solid black !important;
+    background: grey;
+    color: white;
+    position: absolute;
+    bottom: 8px;
+    width: 100%;
+}
+
+.popular-highlight {
+    border: 1px solid black !important;
+    background: whitesmoke;
+    color: black;
+}
+
+.product {
+    margin-right: auto;
+    margin-left: auto;
+    text-align: left;
+    display: inline-block;
+}
+
+.product_image {
+    border: 1px solid silver;
+    display: inline-block;
+    height: 300px;
+    width: 300px;
+}
+
+.creation_images {
+    width: 70px;
+    height: 70px; 
+    padding: 1px;   
+}
+
+.options_div {
+    padding: 10px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.price {
+    padding: 5px;
+    border: 1px solid silver;
+    background: ivory;
+    min-width: 300px;
+}
+
+.product_description {
+    width: 290px;
+    border: 1px solid silver;
+    padding: 0px 5px;
+    margin-top: 5px;
+}
+
+#cart {
+    text-align: left;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #D67989;
+    color: white;
+    padding: 5px;
+    vertical-align: top;
+    width: 100%;
+    z-index: 100;
+}
+
+.cart_bar {
+    vertical-align: top;
+    padding: 5px 5px 0px 5px;
+    display: inline-block;
+}
+
+.cart_bar_right {
+    position: absolute;
+    right: 20px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.cart_style {
+    margin: 0px 0px 0px -10px;
+    padding: 2px;
+}
+
+.cart_options {
+    display: inline-block;
+    padding: 5px 5px 0px 5px;   
+}
+
+#view_cart {
+    position: relative;
+    margin-right: auto;
+    top: -4px;
+    font-size: 10px;
+    width: 100%;
+    display: inline-block;
+}
+ 
+.option_view {
+    background-color: white;
+    border: 1px dotted silver;
+    color: black;
+    padding: 5px;    
+}
+
+.dd-container {
+    padding-top: 5px;
+}
+
+.placeholder {
+    height: 50px;
+    background-color: aqua;
+    border: 1px dotted blue;    
+}
+
+#drag_builder_table {
+    width: 100%;
+    text-align: left;
+}
+
+.style_options_builder {
+    padding: 5px;
+    margin: 5px;
+    min-height: 50px;
+    background-color: whitesmoke;
+}
+
+.subarea {
+    color: white;
+    padding: 5px;
+    background: silver;
+    margin-left: 50px;
+}
+
+.ui-button-text {
+    display: block;    
+}
+
+#thankyou {
+    position: absolute;
+    top: 0;
+    border: 3px solid black;
+    width: 100%;
+    background: white;
+    font-weight: bold;
+    text-align: center;
+    font-size: 15px;
+    padding: 5px;
+    display: none;    
+}
+
+.ui-combobox {
+	position: relative;
+	display: inline-block;
+}
+    
+.ui-combobox-toggle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	margin-left: -1px;
+	padding: 0;
+	/* adjust styles for IE 6/7 */
+	*height: 1.7em;
+	*top: 0.1em;
+}
+.ui-combobox-input {
+	margin: 0;
+	padding: 0.3em;
+}
+
+.ui-autocomplete {
+	max-height: 100px;
+    white-space: nowrap;
+	overflow-y: auto;
+	/* prevent horizontal scrollbar */
+	overflow-x: hidden;
+	/* add padding to account for vertical scrollbar */
+	padding-right: 20px;
+}
+/* IE 6 doesn't support max-height
+ * we use height instead, but this forces the menu to always be this tall
+ */
+* html .ui-autocomplete {
+	height: 100px;
+}
+	    
+.drag_builder { padding: 5px;min-height:50px;list-style-type: none; margin: 10px;text-align:left }
+
+.orders_table {
+    width: 100%;  
+    border-collapse: collapse;  
+    text-align: center;
+}
+.orders_table td{
+    padding: 2px;    
+}
+.orders_table_row_headers { font-weight:bold; text-align:center;}
+.orders_table_row_a { background-color:  white; }
+.orders_table_row_b { background-color: antiquewhite; }
