@@ -3,39 +3,49 @@
 * dblib.php - Database function library
 * -------------------------------------------------------------------------
 * Author: Matthew Davidson
-* Date: 1/17/2011
-* Revision: 1.7.4
+* Date: 6/07/2016
+* Revision: 1.7.6
 ***************************************************************************/
 
 if(!isset($LIBHEADER)){ include ('header.php'); }
 $DBLIB = true;
 
-$conn = mysql_connect($CFG->dbhost, $CFG->dbuser, $CFG->dbpass) or senderror("Could not connect to database");
-mysql_select_db($CFG->dbname) or senderror("<b>A fatal MySQL error occured</b>.\n<br />\nError: (" . mysql_errno() . ") " . mysql_error());
 
 function reconnect(){
 global $CFG;
-	$conn = mysql_connect($CFG->dbhost, $CFG->dbuser, $CFG->dbpass) or senderror("Could not connect to database");
-	mysql_select_db($CFG->dbname) or senderror("<b>A fatal MySQL error occured</b>.\n<br />\nError: (" . mysql_errno() . ") " . mysql_error());
-	return $conn;
+    if ($CFG->dbtype == "mysqli" && function_exists('mysqli_connect')) {
+        //mysqli is installed
+        $CFG->dbtype = "mysqli";        
+        $conn = mysqli_connect($CFG->dbhost, $CFG->dbuser, $CFG->dbpass) or senderror("Could not connect to database");
+        mysqli_select_db($conn, $CFG->dbname) or senderror("<b>A fatal MySQL error occured</b>.\n<br />\nError: (" . mysqli_errno($conn) . ") " . mysqli_error($conn));
+    }else{
+        $CFG->dbtype = "mysql";        
+        $conn = mysql_connect($CFG->dbhost, $CFG->dbuser, $CFG->dbpass) or senderror("Could not connect to database");
+        mysql_select_db($CFG->dbname) or senderror("<b>A fatal MySQL error occured</b>.\n<br />\nError: (" . mysql_errno() . ") " . mysql_error());   
+    } 
+return $conn;
 }
 
-function fetch_row($result, $type = MYSQL_ASSOC){
-	return mysql_fetch_array($result, $type);
+$conn = reconnect();
+
+if($CFG->dbtype == "mysqli"){
+    require('dblib_mysqli.php');
+}else{
+    require('dblib_mysql.php');
 }
 
-function get_db_row($SQL, $resulttype = MYSQL_ASSOC){
+function get_db_row($SQL, $type = false){
 global $CFG;
+    $type = get_mysql_array_type($type);
 	if($result = get_db_result($SQL)){
-		return fetch_row($result, $resulttype);
+		return fetch_row($result, $type);
 	}
     return false;
 }
 
-function get_db_field($field, $from, $where = false){
+function get_db_field($field, $from, $where) {
 global $CFG;
-    $where = empty($where) ? "" : "WHERE $where";
-	$SQL = "SELECT $field FROM $from $where LIMIT 1";
+	$SQL = "SELECT $field FROM $from WHERE $where LIMIT 1";
     
 	if($result = get_db_result($SQL)){
 		$row = fetch_row($result);
@@ -44,50 +54,77 @@ global $CFG;
 	return false;
 }
 
-function get_db_count($SQL){
-global $CFG;
-	if(strstr($SQL,".")){ //Complex SQL statements
-		if($result = get_db_result($SQL)){
-			return mysql_num_rows($result);
-		} 
-        return 0;
-	}else{ //Simple SQL can be counted quicker this way
-		$SQL = "SELECT COUNT(*) as count " . substr($SQL, strpos($SQL, "FROM"));
-		if($row = get_db_row($SQL)){
-			return $row["count"];
-		}
-        return 0;
-	}
-}
-
-function get_db_result($SQL){
-global $CFG, $conn;
-	if(!$conn){ $conn = reconnect(); }
-	if($result = mysql_query($SQL)){
-	   	$select = preg_match('/^SELECT/i',$SQL) ? true : false;
-		if($select && mysql_num_rows($result) == 0){ //SELECT STATEMENTS ONLY, RETURN false on EMPTY selects
-			return false;
-		}
-        return $result;
-	}
-	return false;
-}
-
-function authenticate($username, $password){
+function authenticate($username, $password) {
 global $CFG, $USER;
 	$time = get_timestamp();
 	
-    //Salted hash
-    $password = sha1($CFG->salt.$password);
-    
 	//SQL Creation
-	$SQL = "SELECT * FROM users WHERE username='$username' AND password='$password'";
+	$SQL = "SELECT * FROM users WHERE email='$username' AND password='".md5($password)."'";
 
-	if($user = get_db_row($SQL)){
-	   $_SESSION['admin'] = true;   
-	   return true;
+	if (!$user = get_db_row($SQL)) {
+		//Password recovery
+		if($user = get_db_row("SELECT * FROM users WHERE email='$username' AND alternate='$password'")){
+			$ip = $_SERVER['REMOTE_ADDR'];
+            $_SESSION['userid'] = $user['userid'];
+			execute_db_sql("UPDATE users SET ip='$ip', last_activity='$time' WHERE userid='" . $user['userid'] . "'");
+			return $user;
+		}else{
+			//Log
+			log_entry("user", $username, "Failed Login");
+			return false;
+		}
+	} else {
+		//First login switch temp password for actual password
+		if (!empty($user['temp']) && strlen($user['temp']) > 0) {
+			execute_db_sql("UPDATE users SET password='" . $user['temp'] . "', temp='' WHERE userid='" . $user['userid'] . "'");
+            //Email new password to the email address.
+            $USER = new stdClass();
+    		$USER->userid = $user['userid'];
+    		$USER->fname = $user['fname'];
+    		$USER->lname = $user['lname'];
+    		$USER->email = $user['email'];
+            $FROMUSER = new stdClass();
+    		$FROMUSER->fname = $CFG->sitename;
+    		$FROMUSER->lname = '';
+    		$FROMUSER->email = $CFG->siteemail;
+    		$message = '
+    			<p><font face="Tahoma"><font size="3" color="#993366">Dear <strong>' . $user['fname'] . ' ' . $user['lname'] . '</strong>,</font><br />
+    			</font></p>
+    			<blockquote>
+    			<p><font size="3" face="Tahoma"><strong>' . $CFG->sitename . '</strong> has recieved notification that you have activated your account.&nbsp; The temporary password you used to log in has now been replaced with the original password you used when you signed up.</font></p>
+    			</blockquote>
+    			<p>&nbsp;</p>
+    			<p><font face="Tahoma"><strong><font size="3" color="#666699">Enjoy the site,</font></strong></font></p>
+    			<p><font size="3" face="Tahoma"><em>' . $CFG->siteowner . ' </em></font><font size="3" face="Tahoma" color="#ff0000">&lt;' . $CFG->siteemail . '</font><font face="Tahoma"><font size="3" color="#ff0000">&gt;</font></font></p>
+    			<p>&nbsp;</p>';
+                $subject = $CFG->sitename . ' Account Activation';
+                send_email($USER,$FROMUSER,false,$subject, $message);
+                send_email($FROMUSER,$FROMUSER,false,$subject, $message);
+		}
+        
+        //Set first activity time
+        if(!$user["first_activity"]){
+            execute_db_sql("UPDATE users SET first_activity=".$time." WHERE userid='" . $user['userid'] . "'");
+        }
+        
+		$ip = $_SERVER['REMOTE_ADDR'];
+        $_SESSION['userid'] = $user['userid'];
+		execute_db_sql("UPDATE users SET ip='$ip', last_activity='$time', alternate='' WHERE userid='" . $user['userid'] . "'");
+
+		//Log
+		log_entry("user", $user['userid'], "Login");
+		return $user;
 	}
-    return false;
+}
+
+function key_login($key){
+global $CFG, $USER;
+	if($userfound = get_db_row("SELECT * FROM users WHERE userkey='$key'")){
+		$time = get_timestamp();
+		$USER->userid = $userfound['userid'];
+        $_SESSION['userid'] = $userfound['userid'];
+		log_entry("user", $userfound['userid'], "Login");
+	}	
 }
 
 function copy_db_row($row, $table, $variablechanges){
@@ -132,25 +169,18 @@ function senderror($message){
     die($message);    
 }
 
-function execute_db_sql($SQL){
-global $CFG, $conn;
+function log_entry($feature = null, $info = null, $description = null, $debug = null){
+global $CFG, $USER, $PAGE;
+	$timeline = get_timestamp();
+	$ip = $_SERVER['REMOTE_ADDR'];
+	$userid = is_logged_in() ? $USER->userid : 0;
 
-	$update = preg_match('/^UPDATE/i',$SQL) ? true : false;
-	$delete = preg_match('/^DELETE/i',$SQL) ? true : false;
-
-    if($result = get_db_result($SQL)){
-    	if($result && $update){ 
-    		$id = mysql_affected_rows($conn);
-    		if(!$id){ return true; }
-    	}elseif($result && $delete){
-     		$id = mysql_affected_rows($conn);
-    		if(!$id){ return true; }
-    	}elseif($result){
-    		$id = mysql_insert_id($conn);
-    		if(!$id){ return true; }
-    	}
-    	return $id;        
-    } 
-    return false;
+	if(!$userid && $description == "Login"){
+		$userid = $info;
+		$info = null;
+	}
+	//$SQL = "INSERT INTO logfile (userid,ip,pageid,timeline,feature,info,description,debug) VALUES($userid,'$ip',$pageid,$timeline,'".addslashes($feature)."','".addslashes($info)."','".addslashes($description)."','".addslashes($debug)."')";
+	//execute_db_sql($SQL);
 }
+
 ?>
