@@ -23,10 +23,10 @@ $CFG->paypal_sig = '';
 $CFG->shippingperitem = '1.00';
 
 //Database connection variables
-$CFG->dbtype    = 'mysql';
+$CFG->dbtype    = 'mysqli'; //mysql or mysqli
 $CFG->dbhost    = 'localhost';
-$CFG->dbname    = '';
-$CFG->dbuser    = '';
+$CFG->dbname    = 'polkadotzebras';
+$CFG->dbuser    = 'root';
 $CFG->dbpass    = '';
 
 //Random 64 character salt
@@ -42,6 +42,6 @@ $CFG->dirroot   = $CFG->docroot;
 $CFG->userfilespath = substr($CFG->docroot,0,strrpos($CFG->docroot,'/'));
 
 //Cookie variables in seconds
-$CFG->timezone = 'America/New_York';
+$CFG->timezone = 'America/Indianapolis';
 date_default_timezone_set($CFG->timezone);
 ?>
